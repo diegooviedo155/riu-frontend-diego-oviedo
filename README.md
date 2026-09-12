@@ -1,59 +1,84 @@
-# RiuFrontendDiegoOviedo
+# Frontend - Diego Oviedo
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.27.
+Aplicación SPA desarrollada en **Angular 19** para la gestión y catálogo de superhéroes (CRUD completo).
 
-## Development server
+---
 
-To start a local development server, run:
+## 🚀 Requisitos previos
 
-```bash
-ng serve
-```
+- **Node.js**: v20 o superior
+- **npm**: v10 o superior (o **Docker / Docker Compose**)
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+## 🛠️ Stack Tecnológico
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- **Framework**: Angular 19.2 (Standalone Components, Signals, nueva sintaxis de control de flujo `@if`, `@for`, `@empty`).
+- **Estrategia de renderizado**: `ChangeDetectionStrategy.OnPush` en todos los componentes para optimizar el ciclo de detección de cambios.
+- **UI & Estilos**: Angular Material (Paginator, Dialog, Icons, Progress Bar) y SCSS modular.
+- **Testing**: Vitest + JSDOM + `@vitest/coverage-v8`.
+- **Mock Server**: `json-server` para la persistencia de datos REST.
+- **Contenedores**: Docker (multi-stage build con Nginx) y Docker Compose.
 
-```bash
-ng generate component component-name
-```
+---
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 💻 Cómo ejecutar el proyecto
 
-```bash
-ng generate --help
-```
+### Opción 1: Con Docker (Recomendada)
 
-## Building
-
-To build the project run:
+Levanta en simultáneo el backend (`json-server` en el puerto 3000) y el frontend optimizado con Nginx en el puerto 4200:
 
 ```bash
-ng build
+docker compose up --build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+- **Frontend**: [http://localhost:4200](http://localhost:4200)
+- **API Mock**: [http://localhost:3000/heroes](http://localhost:3000/heroes)
 
-## Running unit tests
+---
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### Opción 2: Ejecución local con npm
+
+1. **Instalar dependencias**:
+
+   ```bash
+   npm install
+   ```
+
+2. **Iniciar Frontend y Mock Server en simultáneo**:
+   ```bash
+   npm run start:all
+   ```
+
+_(Alternativamente, se pueden ejecutar en dos terminales por separado con `npm run mock:server` y `npm start`)._
+
+---
+
+## 🔄 Restauración de la semilla de datos
+
+Las operaciones de borrado y edición persisten directamente sobre el archivo `db.json`. Para restablecer los datos originales en cualquier momento, ejecutar:
 
 ```bash
-ng test
+npm run mock:reset
 ```
 
-## Running end-to-end tests
+Este comando sobreescribe `db.json` con la copia de respaldo inmutable `db.seed.json`.
 
-For end-to-end (e2e) testing, run:
+---
 
-```bash
-ng e2e
-```
+## 🧪 Tests Unitarios y Cobertura
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+La suite de tests unitarios está construida con **Vitest**:
 
-## Additional Resources
+- **Ejecutar tests**:
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+  ```bash
+  npm run test:run
+  ```
+
+- **Ver reporte de cobertura**:
+  ```bash
+  npm run test:coverage
+  ```
+
+---
