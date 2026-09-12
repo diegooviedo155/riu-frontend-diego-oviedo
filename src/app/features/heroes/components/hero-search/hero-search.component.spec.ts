@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SimpleChange } from '@angular/core';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { HeroSearchComponent } from './hero-search.component';
 import { SEARCH_DEBOUNCE_TIME_MS } from '../../constants/hero.constants';
@@ -86,23 +85,19 @@ describe('HeroSearchComponent', () => {
   });
 
   describe('Border Cases', () => {
-    it('should sync searchControl when searchTerm input property changes via ngOnChanges', () => {
-      component.searchTerm = 'thor';
-      component.ngOnChanges({
-        searchTerm: new SimpleChange('', 'thor', false),
-      });
+    it('should sync searchControl when searchTerm input signal changes', () => {
+      fixture.componentRef.setInput('searchTerm', 'thor');
+      fixture.detectChanges();
 
       expect(component.searchControl.value).toBe('thor');
     });
 
-    it('should ignore first change in ngOnChanges', () => {
-      component.searchControl.setValue('initial');
-      component.searchTerm = 'new';
-      component.ngOnChanges({
-        searchTerm: new SimpleChange('', 'new', true),
-      });
+    it('should not mutate searchControl when searchTerm signal matches current value', () => {
+      component.searchControl.setValue('flash');
+      fixture.componentRef.setInput('searchTerm', 'flash');
+      fixture.detectChanges();
 
-      expect(component.searchControl.value).toBe('initial');
+      expect(component.searchControl.value).toBe('flash');
     });
 
     it('should emit empty string when user erases input', () => {

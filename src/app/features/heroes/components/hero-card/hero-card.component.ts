@@ -1,8 +1,7 @@
 import {
   Component,
-  Input,
-  Output,
-  EventEmitter,
+  input,
+  output,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,15 +17,15 @@ import { Hero } from '../../models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeroCardComponent {
-  @Input({ required: true }) hero!: Hero;
-  @Output() edit = new EventEmitter<string>();
-  @Output() delete = new EventEmitter<Hero>();
+  readonly hero = input.required<Hero>();
+  readonly edit = output<string>();
+  readonly delete = output<Hero>();
 
   onEdit(): void {
-    this.edit.emit(this.hero.id);
+    this.edit.emit(this.hero().id);
   }
 
   onDelete(): void {
-    this.delete.emit(this.hero);
+    this.delete.emit(this.hero());
   }
 }

@@ -1,15 +1,13 @@
 import {
   Component,
-  Input,
-  Output,
-  EventEmitter,
+  input,
+  output,
   OnInit,
-  OnChanges,
-  SimpleChanges,
   DestroyRef,
   inject,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  effect,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -26,18 +24,27 @@ import { SEARCH_DEBOUNCE_TIME_MS } from '../../constants/hero.constants';
   styleUrls: ['./hero-search.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HeroSearchComponent implements OnInit, OnChanges {
+export class HeroSearchComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  @Input() searchTerm = '';
-  @Output() searchChange = new EventEmitter<string>();
-  @Output() clear = new EventEmitter<void>();
+  readonly searchTerm = input<string>('');
+  readonly searchChange = output<string>();
+  readonly clear = output<void>();
 
   readonly searchControl = new FormControl<string>('', { nonNullable: true });
 
+  constructor() {
+    effect(() => {
+      const term = this.searchTerm();
+      if (this.searchControl.value !== term) {
+        this.searchControl.setValue(term, { emitEvent: false });
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   ngOnInit(): void {
-    this.searchControl.setValue(this.searchTerm, { emitEvent: false });
     this.searchControl.valueChanges
       .pipe(
         tap(() => this.cdr.markForCheck()),
@@ -48,15 +55,6 @@ export class HeroSearchComponent implements OnInit, OnChanges {
       .subscribe((value) => {
         this.searchChange.emit(value);
       });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['searchTerm'] && !changes['searchTerm'].firstChange) {
-      if (this.searchControl.value !== this.searchTerm) {
-        this.searchControl.setValue(this.searchTerm, { emitEvent: false });
-        this.cdr.markForCheck();
-      }
-    }
   }
 
   onClear(): void {
