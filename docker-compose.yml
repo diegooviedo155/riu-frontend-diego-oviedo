@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  backend:
+    image: clue/json-server
+    volumes:
+      - ./db.json:/data/db.json
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
