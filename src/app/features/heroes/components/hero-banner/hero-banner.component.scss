@@ -1,0 +1,57 @@
+.hero-banner {
+  background: linear-gradient(135deg, #c4002e 0%, #8a0020 60%, #5e0016 100%);
+  color: #ffffff;
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  &__title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+
+  &__subtitle {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    max-width: 600px;
+  }
+
+  @media (max-width: 599px) {
+    padding: 18px 16px;
+
+    &__title {
+      font-size: 1.35rem;
+    }
+
+    &__subtitle {
+      font-size: 0.85rem;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+<footer class="hero-paginator">
+  <mat-paginator
+    [length]="length()"
+    [pageSize]="pageSize()"
+    [pageIndex]="pageIndex()"
+    [pageSizeOptions]="pageSizeOptions()"
+    (page)="pageChange.emit($event)"
+    aria-label="Páginas de superhéroes"
+  ></mat-paginator>
+</footer>

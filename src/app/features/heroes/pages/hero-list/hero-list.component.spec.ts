@@ -6,12 +6,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  HeroListComponent,
-  getSpanishPaginatorIntl,
-} from './hero-list.component';
+import { HeroListComponent } from './hero-list.component';
 import { HeroFacadeService } from '../../services/hero-facade.service';
 import { Hero } from '../../models';
+import { HERO_PAGINATION_CONFIG } from '../../constants/hero.constants';
 
 describe('HeroListComponent', () => {
   let component: HeroListComponent;
@@ -20,15 +18,18 @@ describe('HeroListComponent', () => {
   let facadeMock: {
     loadAll: ReturnType<typeof vi.fn>;
     setSearchTerm: ReturnType<typeof vi.fn>;
+    setPageIndex: ReturnType<typeof vi.fn>;
+    setPageSize: ReturnType<typeof vi.fn>;
     deleteHero: ReturnType<typeof vi.fn>;
     filteredHeroes: any;
     heroes: any;
     searchTerm: any;
+    pageIndex: any;
+    pageSize: any;
   };
   let dialogMock: {
     open: ReturnType<typeof vi.fn>;
   };
-  let scrollToSpy: ReturnType<typeof vi.spyOn>;
 
   const sampleHeroes: Hero[] = [
     {
@@ -59,21 +60,34 @@ describe('HeroListComponent', () => {
 
   const heroesSignal = signal<Hero[]>(sampleHeroes);
   const searchSignal = signal<string>('');
+  const pageIndexSignal = signal<number>(0);
+  const pageSizeSignal = signal<number>(
+    HERO_PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+  );
 
   beforeEach(async () => {
-    scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
     heroesSignal.set(sampleHeroes);
     searchSignal.set('');
+    pageIndexSignal.set(0);
+    pageSizeSignal.set(HERO_PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
 
     facadeMock = {
       loadAll: vi.fn().mockReturnValue(of(sampleHeroes)),
       setSearchTerm: vi
         .fn()
         .mockImplementation((term: string) => searchSignal.set(term)),
+      setPageIndex: vi
+        .fn()
+        .mockImplementation((index: number) => pageIndexSignal.set(index)),
+      setPageSize: vi
+        .fn()
+        .mockImplementation((size: number) => pageSizeSignal.set(size)),
       deleteHero: vi.fn().mockReturnValue(of(undefined)),
       filteredHeroes: computed(() => heroesSignal()),
       heroes: computed(() => heroesSignal()),
       searchTerm: computed(() => searchSignal()),
+      pageIndex: computed(() => pageIndexSignal()),
+      pageSize: computed(() => pageSizeSignal()),
     };
 
     dialogMock = {
@@ -106,8 +120,8 @@ describe('HeroListComponent', () => {
     });
 
     it('should paginate heroes correctly according to pageSize and pageIndex', () => {
-      component.pageSize.set(2);
-      component.pageIndex.set(0);
+      pageSizeSignal.set(2);
+      pageIndexSignal.set(0);
 
       expect(component.paginatedHeroes().length).toBe(2);
       expect(component.paginatedHeroes()[0].name).toBe('SPIDERMAN');
@@ -118,29 +132,22 @@ describe('HeroListComponent', () => {
         length: 3,
       } as PageEvent);
 
-      expect(component.pageIndex()).toBe(1);
-      expect(component.pageSize()).toBe(2);
+      expect(facadeMock.setPageIndex).toHaveBeenCalledWith(1);
+      expect(facadeMock.setPageSize).toHaveBeenCalledWith(2);
       expect(component.paginatedHeroes().length).toBe(1);
       expect(component.paginatedHeroes()[0].name).toBe('SUPERMAN');
-      expect(scrollToSpy).not.toHaveBeenCalled();
     });
 
-    it('should delegate search change to facade and reset pageIndex to 0', () => {
-      component.pageIndex.set(2);
-
+    it('should delegate search change to facade', () => {
       component.onSearchChange('batman');
 
       expect(facadeMock.setSearchTerm).toHaveBeenCalledWith('batman');
-      expect(component.pageIndex()).toBe(0);
     });
 
-    it('should delegate search clear to facade and reset pageIndex to 0', () => {
-      component.pageIndex.set(1);
-
+    it('should delegate search clear to facade', () => {
       component.onSearchClear();
 
       expect(facadeMock.setSearchTerm).toHaveBeenCalledWith('');
-      expect(component.pageIndex()).toBe(0);
     });
 
     it('should navigate to edit hero route on onEditHero', () => {
@@ -167,15 +174,18 @@ describe('HeroListComponent', () => {
       expect(cards.length).toBe(3);
     });
 
-    it('should render hero banner with title and badge', () => {
+    it('should render hero banner component', () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      const bannerTitle = compiled.querySelector('.hero-banner__title');
-      const bannerBadge = compiled.querySelector('.hero-banner__badge');
+      const banner = compiled.querySelector('app-hero-banner');
 
-      expect(bannerTitle?.textContent).toBe('Mantenimiento de Superhéroes');
-      expect(bannerBadge?.textContent).toContain(
-        'Prueba Técnica Frontend · RIU',
-      );
+      expect(banner).toBeTruthy();
+    });
+
+    it('should render hero paginator component', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const paginator = compiled.querySelector('app-hero-paginator');
+
+      expect(paginator).toBeTruthy();
     });
   });
 
@@ -190,22 +200,12 @@ describe('HeroListComponent', () => {
       expect(dialogMock.open).toHaveBeenCalled();
       expect(facadeMock.deleteHero).not.toHaveBeenCalled();
     });
-
-    it('should maintain scroll position and not trigger window scroll during page change', () => {
-      component.onPageChange({
-        pageIndex: 0,
-        pageSize: 6,
-        length: 10,
-      } as PageEvent);
-
-      expect(scrollToSpy).not.toHaveBeenCalled();
-    });
   });
 
   describe('Border Cases', () => {
     it('should safely clamp pageIndex within bounds when pageIndex overflows', () => {
-      component.pageSize.set(2);
-      component.pageIndex.set(99);
+      pageSizeSignal.set(2);
+      pageIndexSignal.set(99);
 
       expect(component.paginatedHeroes().length).toBe(1);
       expect(component.paginatedHeroes()[0].name).toBe('SUPERMAN');
@@ -222,20 +222,6 @@ describe('HeroListComponent', () => {
       expect(
         emptyContainer?.querySelector('.hero-list__empty-title')?.textContent,
       ).toContain('No se encontraron superhéroes');
-    });
-
-    it('should provide spanish labels and handle range boundaries in getSpanishPaginatorIntl', () => {
-      const intl = getSpanishPaginatorIntl();
-
-      expect(intl.itemsPerPageLabel).toBe('Héroes por página:');
-      expect(intl.nextPageLabel).toBe('Página siguiente');
-      expect(intl.previousPageLabel).toBe('Página anterior');
-      expect(intl.firstPageLabel).toBe('Primera página');
-      expect(intl.lastPageLabel).toBe('Última página');
-      expect(intl.getRangeLabel(0, 6, 20)).toBe('1 – 6 de 20');
-      expect(intl.getRangeLabel(3, 6, 20)).toBe('19 – 20 de 20');
-      expect(intl.getRangeLabel(0, 6, 0)).toBe('0 de 0');
-      expect(intl.getRangeLabel(0, 0, 10)).toBe('0 de 10');
     });
   });
 });

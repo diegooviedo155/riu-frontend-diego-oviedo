@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   inject,
-  signal,
   computed,
   DestroyRef,
   ChangeDetectionStrategy,
@@ -11,60 +10,29 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { filter, switchMap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  MatPaginatorIntl,
-  MatPaginatorModule,
-  PageEvent,
-} from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { HeroFacadeService } from '../../services/hero-facade.service';
 import { Hero } from '../../models';
 import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { cardStaggerAnimation } from '../../../../shared/animations/list.animations';
-import { HERO_PAGINATION_CONFIG } from '../../constants/hero.constants';
 import { HeroCardComponent } from '../../components/hero-card/hero-card.component';
 import { HeroSearchComponent } from '../../components/hero-search/hero-search.component';
-
-export function getSpanishPaginatorIntl(): MatPaginatorIntl {
-  const intl = new MatPaginatorIntl();
-  intl.itemsPerPageLabel = 'Héroes por página:';
-  intl.nextPageLabel = 'Página siguiente';
-  intl.previousPageLabel = 'Página anterior';
-  intl.firstPageLabel = 'Primera página';
-  intl.lastPageLabel = 'Última página';
-  intl.getRangeLabel = (
-    page: number,
-    pageSize: number,
-    length: number,
-  ): string => {
-    if (length === 0 || pageSize === 0) {
-      return `0 de ${length}`;
-    }
-    const safeLength = Math.max(length, 0);
-    const startIndex = page * pageSize;
-    const endIndex =
-      startIndex < safeLength
-        ? Math.min(startIndex + pageSize, safeLength)
-        : startIndex + pageSize;
-    return `${startIndex + 1} – ${endIndex} de ${safeLength}`;
-  };
-  return intl;
-}
+import { HeroBannerComponent } from '../../components/hero-banner/hero-banner.component';
+import { HeroPaginatorComponent } from '../../components/hero-paginator/hero-paginator.component';
 
 @Component({
   selector: 'app-hero-list',
   standalone: true,
   imports: [
     RouterLink,
-    MatPaginatorModule,
     MatIconModule,
     MatButtonModule,
     HeroCardComponent,
     HeroSearchComponent,
-  ],
-  providers: [
-    { provide: MatPaginatorIntl, useFactory: getSpanishPaginatorIntl },
+    HeroBannerComponent,
+    HeroPaginatorComponent,
   ],
   templateUrl: './hero-list.component.html',
   styleUrls: ['./hero-list.component.scss'],
@@ -77,10 +45,8 @@ export class HeroListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly pageSize = signal<number>(HERO_PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
-  readonly pageIndex = signal<number>(0);
-  readonly pageSizeOptions = HERO_PAGINATION_CONFIG.PAGE_SIZE_OPTIONS;
-
+  readonly pageSize = this.facade.pageSize;
+  readonly pageIndex = this.facade.pageIndex;
   readonly searchTerm = this.facade.searchTerm;
   readonly filteredHeroes = this.facade.filteredHeroes;
 
@@ -100,12 +66,10 @@ export class HeroListComponent implements OnInit {
 
   onSearchChange(term: string): void {
     this.facade.setSearchTerm(term);
-    this.pageIndex.set(0);
   }
 
   onSearchClear(): void {
     this.facade.setSearchTerm('');
-    this.pageIndex.set(0);
   }
 
   onEditHero(id: string): void {
@@ -113,8 +77,8 @@ export class HeroListComponent implements OnInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.pageSize.set(event.pageSize);
-    this.pageIndex.set(event.pageIndex);
+    this.facade.setPageSize(event.pageSize);
+    this.facade.setPageIndex(event.pageIndex);
   }
 
   confirmDelete(hero: Hero): void {

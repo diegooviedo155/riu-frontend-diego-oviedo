@@ -1,16 +1,4 @@
-<header class="hero-banner">
-  <div class="hero-banner__container">
-    <span class="hero-banner__badge">
-      <mat-icon aria-hidden="true">verified</mat-icon>
-      <span>Prueba Técnica Frontend · RIU</span>
-    </span>
-    <h1 class="hero-banner__title">Mantenimiento de Superhéroes</h1>
-    <p class="hero-banner__subtitle">
-      Catálogo interactivo y gestión integral de héroes con Angular 19 y
-      Signals.
-    </p>
-  </div>
-</header>
+<app-hero-banner></app-hero-banner>
 
 <section class="hero-list">
   <header class="hero-list__header">
@@ -51,14 +39,10 @@
     }
   </div>
 
-  <footer class="hero-list__paginator">
-    <mat-paginator
-      [length]="filteredHeroes().length"
-      [pageSize]="pageSize()"
-      [pageIndex]="pageIndex()"
-      [pageSizeOptions]="pageSizeOptions"
-      (page)="onPageChange($event)"
-      aria-label="Páginas de superhéroes"
-    ></mat-paginator>
-  </footer>
+  <app-hero-paginator
+    [length]="filteredHeroes().length"
+    [pageSize]="pageSize()"
+    [pageIndex]="pageIndex()"
+    (pageChange)="onPageChange($event)"
+  ></app-hero-paginator>
 </section>
