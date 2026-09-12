@@ -1,0 +1,64 @@
+<header class="hero-banner">
+  <div class="hero-banner__container">
+    <span class="hero-banner__badge">
+      <mat-icon aria-hidden="true">verified</mat-icon>
+      <span>Prueba Técnica Frontend · RIU</span>
+    </span>
+    <h1 class="hero-banner__title">Mantenimiento de Superhéroes</h1>
+    <p class="hero-banner__subtitle">
+      Catálogo interactivo y gestión integral de héroes con Angular 19 y
+      Signals.
+    </p>
+  </div>
+</header>
+
+<section class="hero-list">
+  <header class="hero-list__header">
+    <app-hero-search
+      [searchTerm]="searchTerm()"
+      (searchChange)="onSearchChange($event)"
+      (clear)="onSearchClear()"
+    ></app-hero-search>
+
+    <a mat-flat-button routerLink="/heroes/new" class="hero-list__add-btn">
+      <mat-icon aria-hidden="true">add</mat-icon>
+      <span>Nuevo Héroe</span>
+    </a>
+  </header>
+
+  <div
+    class="hero-list__grid"
+    [@cardStagger]="
+      pageIndex() + '-' + pageSize() + '-' + paginatedHeroes().length
+    "
+  >
+    @for (hero of paginatedHeroes(); track hero.id) {
+      <app-hero-card
+        [hero]="hero"
+        (edit)="onEditHero($event)"
+        (delete)="confirmDelete($event)"
+      ></app-hero-card>
+    } @empty {
+      <section class="hero-list__empty">
+        <div class="hero-list__empty-icon">
+          <mat-icon aria-hidden="true">shield</mat-icon>
+        </div>
+        <h4 class="hero-list__empty-title">No se encontraron superhéroes</h4>
+        <p class="hero-list__empty-text">
+          Intenta ajustar el término de búsqueda o registra un nuevo héroe.
+        </p>
+      </section>
+    }
+  </div>
+
+  <footer class="hero-list__paginator">
+    <mat-paginator
+      [length]="filteredHeroes().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPageChange($event)"
+      aria-label="Páginas de superhéroes"
+    ></mat-paginator>
+  </footer>
+</section>

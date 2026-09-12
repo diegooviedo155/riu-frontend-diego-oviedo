@@ -1,12 +1,29 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { NavbarComponent } from './shared/ui/navbar/navbar.component';
+import { SpinnerComponent } from './shared/ui/spinner/spinner.component';
+import { FooterComponent } from './shared/ui/footer/footer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  standalone: true,
+  imports: [RouterOutlet, NavbarComponent, SpinnerComponent, FooterComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <app-spinner />
+    <app-navbar />
+    <main class="main-content">
+      <router-outlet />
+    </main>
+    <app-footer />
+  `,
+  styles: [
+    `
+      .main-content {
+        min-height: calc(100vh - 72px);
+        background-color: #f9f8f6;
+      }
+    `,
+  ],
 })
-export class AppComponent {
-  title = 'riu-frontend-diego-oviedo';
-}
+export class AppComponent {}

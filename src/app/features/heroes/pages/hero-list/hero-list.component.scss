@@ -1,0 +1,216 @@
+.hero-banner {
+  background: linear-gradient(135deg, #c4002e 0%, #8a0020 60%, #5e0016 100%);
+  color: #ffffff;
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  &__title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+
+  &__subtitle {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    max-width: 600px;
+  }
+
+  @media (max-width: 599px) {
+    padding: 18px 16px;
+
+    &__title {
+      font-size: 1.35rem;
+    }
+
+    &__subtitle {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.hero-list {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 32px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+
+    app-hero-search {
+      flex: 1;
+      max-width: 480px;
+      min-width: 260px;
+    }
+  }
+
+  &__add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #c4002e !important;
+    color: #ffffff !important;
+    --mdc-filled-button-container-color: #c4002e;
+    --mdc-filled-button-label-text-color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(196, 0, 46, 0.2);
+    transition:
+      transform 0.15s ease,
+      background-color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &:hover {
+      background-color: #9e0024 !important;
+      --mdc-filled-button-container-color: #9e0024;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(196, 0, 46, 0.3);
+    }
+
+    &:active {
+      background-color: #85001e;
+    }
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+  }
+
+  &__empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 64px 16px;
+  }
+
+  &__empty-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #fff0f3;
+    border: 1px solid #fcd5db;
+    color: #c4002e;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  &__empty-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1c1c1c;
+    margin-bottom: 6px;
+  }
+
+  &__empty-text {
+    color: #666666;
+    font-size: 0.925rem;
+  }
+
+  &__paginator {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #e8e5e0;
+    padding-top: 20px;
+    width: 100%;
+
+    mat-paginator {
+      background: transparent;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 599px) {
+    padding: 20px 16px;
+
+    &__header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    &__add-btn {
+      justify-content: center;
+      width: 100%;
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    &__paginator {
+      padding-top: 16px;
+      margin-top: 24px;
+    }
+  }
+
+  @media (min-width: 600px) and (max-width: 1024px) {
+    padding: 28px 20px;
+
+    &__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+  }
+
+  @media (min-width: 1025px) {
+    &__grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+  }
+}

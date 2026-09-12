@@ -1,0 +1,107 @@
+<section class="hero-form">
+  <div class="hero-form__card">
+    <header class="hero-form__header">
+      <a mat-button routerLink="/heroes" class="hero-form__back-link">
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+        <span>Volver a la lista</span>
+      </a>
+      <h2 class="hero-form__title">
+        {{ isEditMode() ? "Editar Superhéroe" : "Registrar Nuevo Superhéroe" }}
+      </h2>
+      <p class="hero-form__subtitle">
+        Completa la información esencial del perfil.
+      </p>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="hero-form__body">
+      <mat-form-field appearance="outline" class="hero-form__field">
+        <mat-label>Nombre del Héroe</mat-label>
+        <mat-icon matPrefix aria-hidden="true">badge</mat-icon>
+        <input
+          matInput
+          id="hero-name"
+          type="text"
+          formControlName="name"
+          appUppercase
+          placeholder="EJ: SPIDERMAN"
+        />
+        @if (form.controls.name.hasError("required")) {
+          <mat-error>El nombre es requerido.</mat-error>
+        }
+        @if (form.controls.name.hasError("minlength")) {
+          <mat-error>Debe tener al menos 3 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="hero-form__field">
+        <mat-label>Identidad Secreta (Alias)</mat-label>
+        <mat-icon matPrefix aria-hidden="true">fingerprint</mat-icon>
+        <input
+          matInput
+          id="hero-alias"
+          type="text"
+          formControlName="alias"
+          placeholder="Ej: Peter Parker"
+        />
+        @if (form.controls.alias.hasError("required")) {
+          <mat-error>El alias o identidad es requerido.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="hero-form__field">
+        <mat-label>Superpoder Principal</mat-label>
+        <mat-icon matPrefix aria-hidden="true">bolt</mat-icon>
+        <input
+          matInput
+          id="hero-power"
+          type="text"
+          formControlName="power"
+          placeholder="Ej: Sentido arácnido, trepar muros"
+        />
+        @if (form.controls.power.hasError("required")) {
+          <mat-error>El superpoder es requerido.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="hero-form__field">
+        <mat-label>Universo / Editorial</mat-label>
+        <mat-icon matPrefix aria-hidden="true">public</mat-icon>
+        <mat-select id="hero-publisher" formControlName="publisher">
+          <mat-option value="Marvel">Marvel</mat-option>
+          <mat-option value="DC">DC Comics</mat-option>
+          <mat-option value="Other">Otro</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="hero-form__field">
+        <mat-label>Descripción (Opcional)</mat-label>
+        <mat-icon matPrefix aria-hidden="true">description</mat-icon>
+        <textarea
+          matInput
+          id="hero-description"
+          formControlName="description"
+          rows="3"
+          placeholder="Breve reseña sobre el personaje..."
+        ></textarea>
+      </mat-form-field>
+
+      <footer class="hero-form__actions">
+        <a mat-button routerLink="/heroes" class="hero-form__cancel-btn">
+          <mat-icon aria-hidden="true">close</mat-icon>
+          <span>Cancelar</span>
+        </a>
+        <button
+          mat-flat-button
+          type="submit"
+          [disabled]="form.invalid"
+          class="hero-form__submit-btn"
+        >
+          <mat-icon aria-hidden="true">{{
+            isEditMode() ? "save" : "add_circle"
+          }}</mat-icon>
+          <span>{{ isEditMode() ? "Guardar Cambios" : "Dar de Alta" }}</span>
+        </button>
+      </footer>
+    </form>
+  </div>
+</section>
