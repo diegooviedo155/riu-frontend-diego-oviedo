@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { HeroFacadeService } from './hero-facade.service';
 import { HeroApiService } from './hero-api.service';
 import { Hero, HeroCreateDto, HeroUpdateDto } from '../models';
+import { HERO_PAGINATION_CONFIG } from '../constants/hero.constants';
 
 describe('HeroFacadeService', () => {
   let facade: HeroFacadeService;
@@ -115,6 +116,38 @@ describe('HeroFacadeService', () => {
       expect(facade.heroes().length).toBe(1);
       expect(facade.heroes().find((item) => item.id === '1')).toBeUndefined();
     });
+
+    it('should update pageIndex when setPageIndex is called', () => {
+      facade.setPageIndex(2);
+
+      expect(facade.pageIndex()).toBe(2);
+    });
+
+    it('should update pageSize when setPageSize is called', () => {
+      facade.setPageSize(12);
+
+      expect(facade.pageSize()).toBe(12);
+    });
+
+    it('should reset pageIndex to 0 and set search term when setSearchTerm is called', () => {
+      facade.setPageIndex(3);
+
+      facade.setSearchTerm('batman');
+
+      expect(facade.searchTerm()).toBe('batman');
+      expect(facade.pageIndex()).toBe(0);
+    });
+
+    it('should preserve search term and pageIndex when loadAll executes', () => {
+      apiMock.getAll.mockReturnValue(of(mockHeroes));
+      facade.setSearchTerm('spider');
+      facade.setPageIndex(2);
+
+      facade.loadAll().subscribe();
+
+      expect(facade.searchTerm()).toBe('spider');
+      expect(facade.pageIndex()).toBe(2);
+    });
   });
 
   describe('Bad Path', () => {
@@ -169,10 +202,12 @@ describe('HeroFacadeService', () => {
   });
 
   describe('Border Cases', () => {
-    it('should initialize with empty signals', () => {
+    it('should initialize with default pagination and empty filter signals', () => {
       expect(facade.heroes()).toEqual([]);
       expect(facade.searchTerm()).toBe('');
       expect(facade.filteredHeroes()).toEqual([]);
+      expect(facade.pageIndex()).toBe(0);
+      expect(facade.pageSize()).toBe(HERO_PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
     });
 
     it('should handle case-insensitive search filtering', () => {

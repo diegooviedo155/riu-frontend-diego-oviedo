@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { Hero, HeroCreateDto, HeroUpdateDto } from '../models';
+import { HERO_PAGINATION_CONFIG } from '../constants/hero.constants';
 import { HeroApiService } from './hero-api.service';
 
 @Injectable({
@@ -11,9 +12,15 @@ export class HeroFacadeService {
 
   private readonly _heroes = signal<Hero[]>([]);
   private readonly _searchTerm = signal<string>('');
+  private readonly _pageIndex = signal<number>(0);
+  private readonly _pageSize = signal<number>(
+    HERO_PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+  );
 
   readonly heroes = this._heroes.asReadonly();
   readonly searchTerm = this._searchTerm.asReadonly();
+  readonly pageIndex = this._pageIndex.asReadonly();
+  readonly pageSize = this._pageSize.asReadonly();
 
   readonly filteredHeroes = computed(() => {
     const term = this._searchTerm().trim().toLowerCase();
@@ -25,6 +32,15 @@ export class HeroFacadeService {
 
   setSearchTerm(term: string): void {
     this._searchTerm.set(term);
+    this._pageIndex.set(0);
+  }
+
+  setPageIndex(index: number): void {
+    this._pageIndex.set(index);
+  }
+
+  setPageSize(size: number): void {
+    this._pageSize.set(size);
   }
 
   loadAll(): Observable<Hero[]> {
