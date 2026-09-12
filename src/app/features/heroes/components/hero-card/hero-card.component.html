@@ -1,0 +1,61 @@
+<article class="hero-card">
+  <header class="hero-card__header">
+    <div class="hero-card__identity">
+      <div class="hero-card__avatar" aria-hidden="true">
+        {{ hero.name ? hero.name.charAt(0).toUpperCase() : "H" }}
+      </div>
+      <div class="hero-card__titles">
+        <h3 class="hero-card__name">{{ hero.name }}</h3>
+        <p class="hero-card__alias">{{ hero.alias }}</p>
+      </div>
+    </div>
+    <span class="hero-card__publisher">
+      <mat-icon class="hero-card__publisher-icon" aria-hidden="true"
+        >auto_awesome</mat-icon
+      >
+      <span>{{ hero.publisher || "Hero" }}</span>
+    </span>
+  </header>
+
+  <main class="hero-card__content">
+    <div class="hero-card__power">
+      <mat-icon class="hero-card__power-icon" aria-hidden="true">bolt</mat-icon>
+      <span>{{ hero.power }}</span>
+    </div>
+    @if (hero.description) {
+      <p class="hero-card__description">{{ hero.description }}</p>
+    }
+  </main>
+
+  <div class="hero-card__action-zone">
+    <button type="button" class="hero-card__trigger" aria-label="Ver opciones">
+      <mat-icon aria-hidden="true">more_horiz</mat-icon>
+      <span class="hero-card__pulse-ring" aria-hidden="true"></span>
+    </button>
+
+    <div class="hero-card__overlay">
+      <nav class="hero-card__actions" aria-label="Acciones de héroe">
+        <button
+          mat-flat-button
+          type="button"
+          class="hero-card__action-btn hero-card__action-btn--edit"
+          (click)="onEdit()"
+          [attr.aria-label]="'Editar ' + hero.name"
+        >
+          <mat-icon aria-hidden="true">edit</mat-icon>
+          <span>Editar</span>
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          class="hero-card__action-btn hero-card__action-btn--delete"
+          (click)="onDelete()"
+          [attr.aria-label]="'Borrar ' + hero.name"
+        >
+          <mat-icon aria-hidden="true">delete_outline</mat-icon>
+          <span>Borrar</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+</article>

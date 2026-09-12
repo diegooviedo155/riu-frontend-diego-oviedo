@@ -1,0 +1,23 @@
+<div class="hero-search">
+  <div class="hero-search__container">
+    <mat-icon class="hero-search__icon" aria-hidden="true">search</mat-icon>
+    <input
+      type="text"
+      [formControl]="searchControl"
+      placeholder="Buscar por nombre (ej. Spiderman)..."
+      class="hero-search__input"
+      aria-label="Buscar superhéroes por nombre"
+    />
+    @if (searchControl.value) {
+      <button
+        mat-icon-button
+        type="button"
+        class="hero-search__clear-btn"
+        (click)="onClear()"
+        aria-label="Limpiar búsqueda"
+      >
+        <mat-icon aria-hidden="true">close</mat-icon>
+      </button>
+    }
+  </div>
+</div>
