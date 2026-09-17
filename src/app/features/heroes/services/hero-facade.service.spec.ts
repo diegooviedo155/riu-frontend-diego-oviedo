@@ -1,8 +1,10 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { HeroFacadeService } from './hero-facade.service';
 import { HeroApiService } from './hero-api.service';
+import { LoadingService } from '../../../core/services/loading.service';
 import { Hero, HeroCreateDto, HeroUpdateDto } from '../models';
 import { HERO_PAGINATION_CONFIG } from '../constants/hero.constants';
 
@@ -341,6 +343,38 @@ describe('HeroFacadeService', () => {
 
       expect(facade.heroes().length).toBe(2);
       expect(facade.pageIndex()).toBe(0);
+    });
+
+    it('should reflect loadingService state when provided in injector', () => {
+      const loadingSignal = signal(true);
+      const loadingMock = { isLoading: loadingSignal.asReadonly() };
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          HeroFacadeService,
+          { provide: HeroApiService, useValue: apiMock },
+          { provide: LoadingService, useValue: loadingMock },
+        ],
+      });
+      const facadeWithLoading = TestBed.inject(HeroFacadeService);
+      expect(facadeWithLoading.isLoading()).toBe(true);
+      loadingSignal.set(false);
+      expect(facadeWithLoading.isLoading()).toBe(false);
+    });
+
+    it('should update and remove hero from active search results signal', () => {
+      apiMock.searchByName.mockReturnValue(of([mockHeroes[0]]));
+      facade.searchHeroes('spider').subscribe();
+      expect(facade.filteredHeroes().length).toBe(1);
+
+      const updatedHero: Hero = { ...mockHeroes[0], alias: 'Miles Morales' };
+      apiMock.update.mockReturnValue(of(updatedHero));
+      facade.updateHero('1', { alias: 'Miles Morales' }).subscribe();
+      expect(facade.filteredHeroes()[0].alias).toBe('Miles Morales');
+
+      apiMock.delete.mockReturnValue(of(undefined));
+      facade.deleteHero('1').subscribe();
+      expect(facade.filteredHeroes().length).toBe(0);
     });
   });
 });

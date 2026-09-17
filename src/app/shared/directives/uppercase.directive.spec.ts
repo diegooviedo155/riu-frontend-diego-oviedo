@@ -116,5 +116,25 @@ describe('UppercaseDirective', () => {
       expect(controlledInput.selectionStart).toBe(3);
       expect(controlledInput.selectionEnd).toBe(6);
     });
+
+    it('should transform value when selection range is unsupported or null', () => {
+      const input = document.createElement('input');
+      Object.defineProperty(input, 'selectionStart', {
+        value: null,
+        configurable: true,
+      });
+      Object.defineProperty(input, 'selectionEnd', {
+        value: null,
+        configurable: true,
+      });
+      input.value = 'batman';
+      const event = new Event('input');
+      Object.defineProperty(event, 'target', { value: input });
+      const directive = TestBed.runInInjectionContext(
+        () => new UppercaseDirective(),
+      );
+      directive.onInput(event);
+      expect(input.value).toBe('BATMAN');
+    });
   });
 });

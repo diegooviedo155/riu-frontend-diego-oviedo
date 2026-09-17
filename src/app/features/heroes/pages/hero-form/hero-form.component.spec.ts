@@ -3,7 +3,11 @@ import { provideRouter, Router, ActivatedRoute } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { HeroFormComponent } from './hero-form.component';
+import { FormControl } from '@angular/forms';
+import {
+  HeroFormComponent,
+  uniqueHeroNameValidator,
+} from './hero-form.component';
 import { HeroFacadeService } from '../../services/hero-facade.service';
 import { Hero } from '../../models';
 
@@ -262,6 +266,13 @@ describe('HeroFormComponent', () => {
       expect(compiled.innerHTML).toContain(
         'Ya existe un héroe con este nombre',
       );
+    });
+
+    it('should return null when validator receives non-string or whitespace-only value', () => {
+      const validator = uniqueHeroNameValidator(() => existingHeroes);
+      expect(validator(new FormControl(null))).toBeNull();
+      expect(validator(new FormControl(123 as unknown as string))).toBeNull();
+      expect(validator(new FormControl('   '))).toBeNull();
     });
   });
 });

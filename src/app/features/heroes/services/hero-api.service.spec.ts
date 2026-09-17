@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { HeroApiService, HERO_API_SIMULATED_DELAY } from './hero-api.service';
 import { LoadingService } from '../../../core/services/loading.service';
@@ -209,6 +210,97 @@ describe('HeroApiService', () => {
       const storedJson = localStorage.getItem('riu_heroes_data');
       expect(storedJson).toBeDefined();
       expect(storedJson).toContain('AQUAMAN');
+    });
+
+    it('should support simulated delay on successful operation', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          HeroApiService,
+          { provide: LoadingService, useValue: loadingServiceMock },
+          { provide: HERO_API_SIMULATED_DELAY, useValue: 10 },
+        ],
+      });
+      const delayedService = TestBed.inject(HeroApiService);
+      const heroes = await firstValueFrom(delayedService.getAll());
+      expect(heroes.length).toBe(20);
+      expect(loadingServiceMock.show).toHaveBeenCalled();
+      expect(loadingServiceMock.hide).toHaveBeenCalled();
+    });
+
+    it('should support simulated delay on failing operation', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          HeroApiService,
+          { provide: LoadingService, useValue: loadingServiceMock },
+          { provide: HERO_API_SIMULATED_DELAY, useValue: 10 },
+        ],
+      });
+      const delayedService = TestBed.inject(HeroApiService);
+      await expect(
+        firstValueFrom(delayedService.getById('non-existent-id')),
+      ).rejects.toThrow();
+      expect(loadingServiceMock.show).toHaveBeenCalled();
+      expect(loadingServiceMock.hide).toHaveBeenCalled();
+    });
+
+    it('should fallback to HEROES_INITIAL_DATA when localStorage has invalid JSON', () => {
+      localStorage.setItem('riu_heroes_data', 'invalid-json-string');
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          HeroApiService,
+          { provide: HERO_API_SIMULATED_DELAY, useValue: 0 },
+        ],
+      });
+      const localService = TestBed.inject(HeroApiService);
+      let heroes: Hero[] = [];
+      localService.getAll().subscribe((data) => (heroes = data));
+      expect(heroes.length).toBe(20);
+    });
+
+    it('should fallback to HEROES_INITIAL_DATA when localStorage has empty array', () => {
+      localStorage.setItem('riu_heroes_data', '[]');
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          HeroApiService,
+          { provide: HERO_API_SIMULATED_DELAY, useValue: 0 },
+        ],
+      });
+      const localService = TestBed.inject(HeroApiService);
+      let heroes: Hero[] = [];
+      localService.getAll().subscribe((data) => (heroes = data));
+      expect(heroes.length).toBe(20);
+    });
+
+    it('should gracefully handle localStorage.setItem exceptions', () => {
+      const setItemSpy = vi
+        .spyOn(Storage.prototype, 'setItem')
+        .mockImplementation(() => {
+          throw new Error('QuotaExceeded');
+        });
+      expect(() => {
+        service
+          .create({ name: 'TEST', alias: 'Test', power: 'None' })
+          .subscribe();
+      }).not.toThrow();
+      setItemSpy.mockRestore();
+    });
+
+    it('should execute successfully when LoadingService is not provided', () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          HeroApiService,
+          { provide: HERO_API_SIMULATED_DELAY, useValue: 0 },
+        ],
+      });
+      const serviceWithoutLoading = TestBed.inject(HeroApiService);
+      let heroes: Hero[] = [];
+      serviceWithoutLoading.getAll().subscribe((data) => (heroes = data));
+      expect(heroes.length).toBe(20);
     });
   });
 });

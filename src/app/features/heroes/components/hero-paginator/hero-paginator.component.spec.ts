@@ -70,6 +70,7 @@ describe('HeroPaginatorComponent', () => {
       expect(intl.lastPageLabel).toBe('Última página');
       expect(intl.getRangeLabel(0, 6, 20)).toBe('1 – 6 de 20');
       expect(intl.getRangeLabel(3, 6, 20)).toBe('19 – 20 de 20');
+      expect(intl.getRangeLabel(5, 6, 20)).toBe('19 – 20 de 20');
       expect(intl.getRangeLabel(0, 6, 0)).toBe('0 de 0');
       expect(intl.getRangeLabel(0, 0, 10)).toBe('0 de 10');
     });
