@@ -88,19 +88,23 @@ export interface ConfirmDialogData {
             height: 18px;
           }
         }
-      }
-      .danger-btn {
-        background-color: #c4002e !important;
-        color: #ffffff !important;
-        border-radius: 8px;
-        transition: background-color 0.15s ease;
+        button.danger-btn {
+          --mdc-filled-button-container-color: #c4002e;
+          --mdc-filled-button-label-text-color: #ffffff;
+          background-color: #c4002e;
+          color: #ffffff;
+          border-radius: 8px;
+          transition: background-color 0.15s ease;
 
-        &:hover {
-          background-color: #9e0024 !important;
-        }
+          &:hover {
+            --mdc-filled-button-container-color: #9e0024;
+            background-color: #9e0024;
+          }
 
-        &:active {
-          background-color: #85001e !important;
+          &:active {
+            --mdc-filled-button-container-color: #85001e;
+            background-color: #85001e;
+          }
         }
       }
     `,

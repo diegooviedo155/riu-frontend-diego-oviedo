@@ -24,8 +24,10 @@ mat-progress-bar {
 }
 
 .mat-mdc-paginator {
-  background-color: transparent !important;
-  color: #666666 !important;
+  --mat-paginator-container-background-color: transparent;
+  --mat-paginator-container-text-color: #666666;
+  background-color: transparent;
+  color: #666666;
 
   .mat-mdc-paginator-container {
     justify-content: center;
@@ -46,8 +48,10 @@ mat-progress-bar {
 }
 
 .mat-mdc-dialog-container .mdc-dialog__surface {
-  background-color: #ffffff !important;
-  border-radius: 16px !important;
-  border: 1px solid #e8e5e0 !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08) !important;
+  --mdc-dialog-container-color: #ffffff;
+  --mdc-dialog-container-shape: 16px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e8e5e0;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }

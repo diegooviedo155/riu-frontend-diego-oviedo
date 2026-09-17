@@ -272,29 +272,29 @@
     }
 
     &--edit {
-      background: #ffffff !important;
-      color: #1c1c1c !important;
       --mdc-filled-button-container-color: #ffffff;
       --mdc-filled-button-label-text-color: #1c1c1c;
+      background: #ffffff;
+      color: #1c1c1c;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 
       &:hover {
-        background: #f4f3f0 !important;
         --mdc-filled-button-container-color: #f4f3f0;
+        background: #f4f3f0;
         transform: translateY(-1px);
       }
     }
 
     &--delete {
-      background: #c4002e !important;
-      color: #ffffff !important;
       --mdc-filled-button-container-color: #c4002e;
       --mdc-filled-button-label-text-color: #ffffff;
+      background: #c4002e;
+      color: #ffffff;
       box-shadow: 0 4px 12px rgba(196, 0, 46, 0.35);
 
       &:hover {
-        background: #9e0024 !important;
         --mdc-filled-button-container-color: #9e0024;
+        background: #9e0024;
         transform: translateY(-1px);
       }
     }
@@ -337,20 +337,20 @@
       font-size: 0.82rem;
 
       &--edit {
-        background: #f9f8f6 !important;
-        color: #333333 !important;
-        border: 1px solid #e8e5e0;
         --mdc-filled-button-container-color: #f9f8f6;
         --mdc-filled-button-label-text-color: #333333;
+        background: #f9f8f6;
+        color: #333333;
+        border: 1px solid #e8e5e0;
         box-shadow: none;
       }
 
       &--delete {
-        background: #fff0f3 !important;
-        color: #c4002e !important;
-        border: 1px solid #fcd5db;
         --mdc-filled-button-container-color: #fff0f3;
         --mdc-filled-button-label-text-color: #c4002e;
+        background: #fff0f3;
+        color: #c4002e;
+        border: 1px solid #fcd5db;
         box-shadow: none;
       }
     }
