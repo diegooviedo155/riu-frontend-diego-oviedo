@@ -14,6 +14,8 @@ describe('HeroFormComponent', () => {
     getHeroById: ReturnType<typeof vi.fn>;
     createHero: ReturnType<typeof vi.fn>;
     updateHero: ReturnType<typeof vi.fn>;
+    loadAll: ReturnType<typeof vi.fn>;
+    heroes: ReturnType<typeof vi.fn>;
   };
   let router: Router;
   let activatedRouteMock: {
@@ -32,14 +34,36 @@ describe('HeroFormComponent', () => {
     publisher: 'Marvel',
     description: 'Asgardian hero',
   };
+  const existingHeroes: Hero[] = [
+    sampleHero,
+    {
+      id: '1',
+      name: 'SPIDERMAN',
+      alias: 'Peter Parker',
+      power: 'Spider-Sense',
+      publisher: 'Marvel',
+    },
+    {
+      id: '2',
+      name: 'CAPITÁN AMÉRICA',
+      alias: 'Steve Rogers',
+      power: 'Super Soldier',
+      publisher: 'Marvel',
+    },
+  ];
 
-  const createTestBed = async (routeId: string | null = null) => {
+  const createTestBed = async (
+    routeId: string | null = null,
+    heroesList: Hero[] = [],
+  ) => {
     TestBed.resetTestingModule();
 
     facadeMock = {
       getHeroById: vi.fn(),
       createHero: vi.fn(),
       updateHero: vi.fn(),
+      loadAll: vi.fn().mockReturnValue(of(heroesList)),
+      heroes: vi.fn().mockReturnValue(heroesList),
     };
 
     activatedRouteMock = {
@@ -178,6 +202,66 @@ describe('HeroFormComponent', () => {
 
       expect(component.form.value.publisher).toBe('Marvel');
       expect(component.form.value.description).toBe('');
+    });
+  });
+
+  describe('Duplicate Name Validation', () => {
+    it('should mark duplicateName error when creating hero with existing name (case-insensitive)', async () => {
+      await createTestBed(null, existingHeroes);
+      fixture.detectChanges();
+
+      component.form.controls.name.setValue('spiderman');
+      expect(component.form.controls.name.hasError('duplicateName')).toBe(true);
+
+      component.form.controls.name.setValue('BATMAN');
+      expect(component.form.controls.name.hasError('duplicateName')).toBe(
+        false,
+      );
+    });
+
+    it('should mark duplicateName error when creating hero with existing name differing in diacritics', async () => {
+      await createTestBed(null, existingHeroes);
+      fixture.detectChanges();
+
+      component.form.controls.name.setValue('capitan america');
+      expect(component.form.controls.name.hasError('duplicateName')).toBe(true);
+
+      component.form.controls.name.setValue('Spíderman');
+      expect(component.form.controls.name.hasError('duplicateName')).toBe(true);
+    });
+
+    it('should allow retaining own name in edit mode without duplicateName error', async () => {
+      await createTestBed('10', existingHeroes);
+      facadeMock.getHeroById.mockReturnValue(of(sampleHero));
+      fixture.detectChanges();
+
+      component.form.controls.name.setValue('THOR');
+      expect(component.form.controls.name.hasError('duplicateName')).toBe(
+        false,
+      );
+    });
+
+    it('should prevent changing name to another hero name in edit mode', async () => {
+      await createTestBed('10', existingHeroes);
+      facadeMock.getHeroById.mockReturnValue(of(sampleHero));
+      fixture.detectChanges();
+
+      component.form.controls.name.setValue('SPIDERMAN');
+      expect(component.form.controls.name.hasError('duplicateName')).toBe(true);
+    });
+
+    it('should display duplicate name error message in the DOM', async () => {
+      await createTestBed(null, existingHeroes);
+      fixture.detectChanges();
+
+      component.form.controls.name.setValue('SPIDERMAN');
+      component.form.controls.name.markAsTouched();
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.innerHTML).toContain(
+        'Ya existe un héroe con este nombre',
+      );
     });
   });
 });

@@ -31,6 +31,9 @@
         @if (form.controls.name.hasError("minlength")) {
           <mat-error>Debe tener al menos 3 caracteres.</mat-error>
         }
+        @if (form.controls.name.hasError("duplicateName")) {
+          <mat-error>Ya existe un héroe con este nombre.</mat-error>
+        }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="hero-form__field">
