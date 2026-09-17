@@ -1,6 +1,6 @@
-# Frontend - Diego Oviedo
+# Gestión de Héroes | RIU - Diego Oviedo
 
-Aplicación SPA desarrollada en **Angular 19** para la gestión y catálogo de superhéroes (CRUD completo).
+Aplicación SPA desarrollada en **Angular 19** para la gestión y catálogo de superhéroes (CRUD completo, paginación, búsqueda reactiva normalizada y validación avanzada).
 
 ---
 
@@ -11,33 +11,24 @@ Aplicación SPA desarrollada en **Angular 19** para la gestión y catálogo de s
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Stack Tecnológico & Arquitectura
 
 - **Framework**: Angular 19.2 (Standalone Components, Signals, nueva sintaxis de control de flujo `@if`, `@for`, `@empty`).
-- **Estrategia de renderizado**: `ChangeDetectionStrategy.OnPush` en todos los componentes para optimizar el ciclo de detección de cambios.
-- **UI & Estilos**: Angular Material (Paginator, Dialog, Icons, Progress Bar) y SCSS modular.
-- **Testing**: Vitest + JSDOM + `@vitest/coverage-v8`.
-- **Mock Server**: `json-server` para la persistencia de datos REST.
-- **Contenedores**: Docker (multi-stage build con Nginx) y Docker Compose.
+- **Estado Reactivo (Facade Pattern)**: `HeroFacadeService` centraliza el estado mediante Signals reactivos (`_heroes`, `_searchTerm`, `_pageIndex`, `_pageSize`) y propiedades computadas (`filteredHeroes`, `paginatedHeroes`).
+- **Persistencia en Cliente**: `HeroApiService` gestiona los datos en memoria a partir de una semilla inicial (`HEROES_INITIAL_DATA`) con sincronización en `localStorage` (`riu_heroes_data`).
+- **Manejo Asíncrono y Feedback Visual**: Simulación de latencia configurable (`delay(150ms)`) integrada con `LoadingService`, spinner global y control de errores vía RxJS.
+- **Detección de Cambios**: `ChangeDetectionStrategy.OnPush` en todos los componentes para optimizar el ciclo de renderizado.
+- **UI y Estilos**: Angular Material (Paginator, Dialog, Icons, Progress Bar) con personalización mediante variables CSS (`--mdc-*`, `--mat-*`) y SCSS modular.
+- **Directivas**: `UppercaseDirective` para la transformación automática a mayúsculas con preservación del rango de selección (`setSelectionRange`).
+- **Validaciones**: Formularios reactivos con validaciones estándar y personalizadas (`uniqueHeroNameValidator`), incluyendo soporte para normalización de texto y diacríticos.
+- **Testing**: Vitest + JSDOM + `@vitest/coverage-v8` con cobertura de flujos principales, alternativos y casos borde.
+- **Contenerización**: Docker multi-stage build con Nginx para servir la aplicación de forma autónoma.
 
 ---
 
 ## 💻 Cómo ejecutar el proyecto
 
-### Opción 1: Con Docker (Recomendada)
-
-Levanta en simultáneo el backend (`json-server` en el puerto 3000) y el frontend optimizado con Nginx en el puerto 4200:
-
-```bash
-docker compose up --build
-```
-
-- **Frontend**: [http://localhost:4200](http://localhost:4200)
-- **API Mock**: [http://localhost:3000/heroes](http://localhost:3000/heroes)
-
----
-
-### Opción 2: Ejecución local con npm
+### Opción 1: Ejecución local con npm
 
 1. **Instalar dependencias**:
 
@@ -45,40 +36,56 @@ docker compose up --build
    npm install
    ```
 
-2. **Iniciar Frontend y Mock Server en simultáneo**:
+2. **Iniciar la aplicación**:
+
    ```bash
-   npm run start:all
+   npm start
    ```
 
-_(Alternativamente, se pueden ejecutar en dos terminales por separado con `npm run mock:server` y `npm start`)._
+   La aplicación estará disponible en [http://localhost:4200](http://localhost:4200).
 
 ---
 
-## 🔄 Restauración de la semilla de datos
+### Opción 2: Con Docker (Contenedor Frontend Autónomo)
 
-Las operaciones de borrado y edición persisten directamente sobre el archivo `db.json`. Para restablecer los datos originales en cualquier momento, ejecutar:
+Construye y levanta el contenedor con Nginx optimizado para producción en el puerto 4200:
 
 ```bash
-npm run mock:reset
+docker compose up --build
 ```
 
-Este comando sobreescribe `db.json` con la copia de respaldo inmutable `db.seed.json`.
+- **Frontend**: [http://localhost:4200](http://localhost:4200)
 
 ---
 
-## 🧪 Tests Unitarios y Cobertura
+## 🧪 Ejecución de Tests
 
-La suite de tests unitarios está construida con **Vitest**:
+Para ejecutar la suite completa de pruebas unitarias con Vitest:
 
-- **Ejecutar tests**:
+```bash
+npm run test:run
+```
 
-  ```bash
-  npm run test:run
-  ```
+Para ejecutar en modo interactivo con watch:
 
-- **Ver reporte de cobertura**:
-  ```bash
-  npm run test:coverage
-  ```
+```bash
+npm run test
+```
+
+Para generar el reporte de cobertura:
+
+```bash
+npm run test:coverage
+```
 
 ---
+
+## 🏗️ Construcción para Producción
+
+Para compilar los artefactos de producción:
+
+```bash
+npm run build
+```
+
+Los archivos resultantes se generarán en el directorio `dist/riu-frontend-diego-oviedo`.

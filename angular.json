@@ -81,5 +81,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "packageManager": "npm"
   }
 }
