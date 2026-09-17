@@ -14,35 +14,46 @@
     </a>
   </header>
 
-  <div
-    class="hero-list__grid"
-    [@cardStagger]="
-      pageIndex() + '-' + pageSize() + '-' + paginatedHeroes().length
-    "
-  >
-    @for (hero of paginatedHeroes(); track hero.id) {
-      <app-hero-card
-        [hero]="hero"
-        (edit)="onEditHero($event)"
-        (delete)="confirmDelete($event)"
-      ></app-hero-card>
-    } @empty {
-      <section class="hero-list__empty">
-        <div class="hero-list__empty-icon">
-          <mat-icon aria-hidden="true">shield</mat-icon>
-        </div>
-        <h4 class="hero-list__empty-title">No se encontraron superhéroes</h4>
-        <p class="hero-list__empty-text">
-          Intenta ajustar el término de búsqueda o registra un nuevo héroe.
-        </p>
-      </section>
-    }
-  </div>
+  @if (isLoading()) {
+    <div
+      class="hero-list__loading"
+      role="status"
+      aria-label="Cargando superhéroes"
+    >
+      <mat-spinner diameter="44"></mat-spinner>
+      <p class="hero-list__loading-text">Cargando superhéroes...</p>
+    </div>
+  } @else {
+    <div
+      class="hero-list__grid"
+      [@cardStagger]="
+        pageIndex() + '-' + pageSize() + '-' + paginatedHeroes().length
+      "
+    >
+      @for (hero of paginatedHeroes(); track hero.id) {
+        <app-hero-card
+          [hero]="hero"
+          (edit)="onEditHero($event)"
+          (delete)="confirmDelete($event)"
+        ></app-hero-card>
+      } @empty {
+        <section class="hero-list__empty">
+          <div class="hero-list__empty-icon">
+            <mat-icon aria-hidden="true">shield</mat-icon>
+          </div>
+          <h4 class="hero-list__empty-title">No se encontraron superhéroes</h4>
+          <p class="hero-list__empty-text">
+            Intenta ajustar el término de búsqueda o registra un nuevo héroe.
+          </p>
+        </section>
+      }
+    </div>
 
-  <app-hero-paginator
-    [length]="filteredHeroes().length"
-    [pageSize]="pageSize()"
-    [pageIndex]="pageIndex()"
-    (pageChange)="onPageChange($event)"
-  ></app-hero-paginator>
+    <app-hero-paginator
+      [length]="filteredHeroes().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      (pageChange)="onPageChange($event)"
+    ></app-hero-paginator>
+  }
 </section>

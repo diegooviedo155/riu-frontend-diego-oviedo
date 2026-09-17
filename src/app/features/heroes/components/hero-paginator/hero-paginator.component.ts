@@ -28,10 +28,13 @@ export function getSpanishPaginatorIntl(): MatPaginatorIntl {
     }
     const safeLength = Math.max(length, 0);
     const startIndex = page * pageSize;
-    const endIndex =
-      startIndex < safeLength
-        ? Math.min(startIndex + pageSize, safeLength)
-        : startIndex + pageSize;
+    if (startIndex >= safeLength) {
+      const correctedPage = Math.max(0, Math.ceil(safeLength / pageSize) - 1);
+      const safeStart = correctedPage * pageSize;
+      const safeEnd = Math.min(safeStart + pageSize, safeLength);
+      return `${safeStart + 1} – ${safeEnd} de ${safeLength}`;
+    }
+    const endIndex = Math.min(startIndex + pageSize, safeLength);
     return `${startIndex + 1} – ${endIndex} de ${safeLength}`;
   };
   return intl;

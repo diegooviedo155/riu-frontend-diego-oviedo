@@ -14,6 +14,7 @@ describe('HeroFacadeService', () => {
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
+    searchByName: ReturnType<typeof vi.fn>;
   };
 
   const mockHeroes: Hero[] = [
@@ -40,6 +41,7 @@ describe('HeroFacadeService', () => {
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      searchByName: vi.fn(),
     };
 
     TestBed.configureTestingModule({
@@ -63,6 +65,10 @@ describe('HeroFacadeService', () => {
       expect(facade.heroes()).toEqual(mockHeroes);
     });
 
+    it('should reflect loading state as false by default when no requests are active', () => {
+      expect(facade.isLoading()).toBe(false);
+    });
+
     it('should delegate getHeroById to api service', () => {
       apiMock.getById.mockReturnValue(of(mockHeroes[0]));
       let result: Hero | undefined;
@@ -73,6 +79,21 @@ describe('HeroFacadeService', () => {
 
       expect(apiMock.getById).toHaveBeenCalledWith('1');
       expect(result).toEqual(mockHeroes[0]);
+    });
+
+    it('should delegate searchHeroes to api.searchByName and update searchTerm', () => {
+      apiMock.searchByName.mockReturnValue(of([mockHeroes[0]]));
+      let result: Hero[] | undefined;
+
+      facade.searchHeroes('spider').subscribe((heroes) => {
+        result = heroes;
+      });
+
+      expect(apiMock.searchByName).toHaveBeenCalledWith('spider');
+      expect(facade.searchTerm()).toBe('spider');
+      expect(facade.pageIndex()).toBe(0);
+      expect(result).toEqual([mockHeroes[0]]);
+      expect(facade.filteredHeroes()).toEqual([mockHeroes[0]]);
     });
 
     it('should append created hero to state upon creation', () => {
@@ -265,6 +286,61 @@ describe('HeroFacadeService', () => {
       facade.deleteHero('999').subscribe();
 
       expect(facade.heroes().length).toBe(2);
+    });
+
+    it('should match heroes using diacritics normalization for both name and alias', () => {
+      const accentedHeroes: Hero[] = [
+        {
+          id: '1',
+          name: 'CAPITÁN AMÉRICA',
+          alias: 'Stéve Ríogers',
+          power: 'Shield',
+        },
+        {
+          id: '2',
+          name: 'SPIDERMAN',
+          alias: 'Peter Parker',
+          power: 'Spider-Sense',
+        },
+      ];
+      apiMock.getAll.mockReturnValue(of(accentedHeroes));
+      facade.loadAll().subscribe();
+
+      facade.setSearchTerm('capitan america');
+      expect(facade.filteredHeroes().length).toBe(1);
+      expect(facade.filteredHeroes()[0].name).toBe('CAPITÁN AMÉRICA');
+
+      facade.setSearchTerm('spíder');
+      expect(facade.filteredHeroes().length).toBe(1);
+      expect(facade.filteredHeroes()[0].name).toBe('SPIDERMAN');
+
+      facade.setSearchTerm('péter');
+      expect(facade.filteredHeroes().length).toBe(1);
+      expect(facade.filteredHeroes()[0].name).toBe('SPIDERMAN');
+
+      facade.setSearchTerm('steve');
+      expect(facade.filteredHeroes().length).toBe(1);
+      expect(facade.filteredHeroes()[0].name).toBe('CAPITÁN AMÉRICA');
+    });
+
+    it('should adjust pageIndex to previous page when deleting the only hero on the last page', () => {
+      const threeHeroes: Hero[] = [
+        { id: '1', name: 'HERO 1', alias: 'A1', power: 'P1' },
+        { id: '2', name: 'HERO 2', alias: 'A2', power: 'P2' },
+        { id: '3', name: 'HERO 3', alias: 'A3', power: 'P3' },
+      ];
+      apiMock.getAll.mockReturnValue(of(threeHeroes));
+      facade.loadAll().subscribe();
+
+      facade.setPageSize(2);
+      facade.setPageIndex(1);
+      expect(facade.pageIndex()).toBe(1);
+
+      apiMock.delete.mockReturnValue(of(undefined));
+      facade.deleteHero('3').subscribe();
+
+      expect(facade.heroes().length).toBe(2);
+      expect(facade.pageIndex()).toBe(0);
     });
   });
 });

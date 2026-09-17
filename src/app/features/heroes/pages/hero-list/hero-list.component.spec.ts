@@ -64,18 +64,24 @@ describe('HeroListComponent', () => {
   const pageSizeSignal = signal<number>(
     HERO_PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
   );
+  const isLoadingSignal = signal<boolean>(false);
 
   beforeEach(async () => {
     heroesSignal.set(sampleHeroes);
     searchSignal.set('');
     pageIndexSignal.set(0);
     pageSizeSignal.set(HERO_PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
+    isLoadingSignal.set(false);
 
     facadeMock = {
       loadAll: vi.fn().mockReturnValue(of(sampleHeroes)),
       setSearchTerm: vi
         .fn()
         .mockImplementation((term: string) => searchSignal.set(term)),
+      searchHeroes: vi.fn().mockImplementation((term: string) => {
+        searchSignal.set(term);
+        return of(sampleHeroes);
+      }),
       setPageIndex: vi
         .fn()
         .mockImplementation((index: number) => pageIndexSignal.set(index)),
@@ -88,6 +94,7 @@ describe('HeroListComponent', () => {
       searchTerm: computed(() => searchSignal()),
       pageIndex: computed(() => pageIndexSignal()),
       pageSize: computed(() => pageSizeSignal()),
+      isLoading: computed(() => isLoadingSignal()),
     };
 
     dialogMock = {
@@ -141,13 +148,27 @@ describe('HeroListComponent', () => {
     it('should delegate search change to facade', () => {
       component.onSearchChange('batman');
 
-      expect(facadeMock.setSearchTerm).toHaveBeenCalledWith('batman');
+      expect(facadeMock.searchHeroes).toHaveBeenCalledWith('batman');
     });
 
     it('should delegate search clear to facade', () => {
       component.onSearchClear();
 
-      expect(facadeMock.setSearchTerm).toHaveBeenCalledWith('');
+      expect(facadeMock.searchHeroes).toHaveBeenCalledWith('');
+    });
+
+    it('should display loading spinner and hide grid when isLoading is true', async () => {
+      isLoadingSignal.set(true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const loadingEl = fixture.nativeElement.querySelector(
+        '.hero-list__loading',
+      );
+      expect(loadingEl).toBeTruthy();
+      expect(
+        fixture.nativeElement.querySelector('.hero-list__grid'),
+      ).toBeNull();
     });
 
     it('should navigate to edit hero route on onEditHero', () => {
@@ -165,6 +186,41 @@ describe('HeroListComponent', () => {
 
       expect(dialogMock.open).toHaveBeenCalled();
       expect(facadeMock.deleteHero).toHaveBeenCalledWith('1');
+    });
+
+    it('should synchronize paginator and adjust pageIndex when deleting the last hero on the last page', () => {
+      pageSizeSignal.set(2);
+      pageIndexSignal.set(1);
+      fixture.detectChanges();
+
+      expect(component.pageIndex()).toBe(1);
+      expect(component.paginatedHeroes().length).toBe(1);
+      expect(component.paginatedHeroes()[0].name).toBe('SUPERMAN');
+
+      facadeMock.deleteHero.mockImplementation((id: string) => {
+        heroesSignal.update((items) => items.filter((h) => h.id !== id));
+        const remaining = heroesSignal().length;
+        const maxPage = Math.max(
+          0,
+          Math.ceil(remaining / pageSizeSignal()) - 1,
+        );
+        if (pageIndexSignal() > maxPage) {
+          pageIndexSignal.set(maxPage);
+        }
+        return of(undefined);
+      });
+
+      dialogMock.open.mockReturnValue({
+        afterClosed: () => of(true),
+      });
+
+      component.confirmDelete(sampleHeroes[2]);
+      fixture.detectChanges();
+
+      expect(facadeMock.deleteHero).toHaveBeenCalledWith('3');
+      expect(component.pageIndex()).toBe(0);
+      expect(component.paginatedHeroes().length).toBe(2);
+      expect(component.filteredHeroes().length).toBe(2);
     });
 
     it('should render hero card components matching paginated count', () => {

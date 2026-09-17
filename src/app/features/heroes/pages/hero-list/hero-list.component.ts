@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HeroFacadeService } from '../../services/hero-facade.service';
 import { Hero } from '../../models';
 import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/confirm-dialog.component';
@@ -29,6 +30,7 @@ import { HeroPaginatorComponent } from '../../components/hero-paginator/hero-pag
     RouterLink,
     MatIconModule,
     MatButtonModule,
+    MatProgressSpinnerModule,
     HeroCardComponent,
     HeroSearchComponent,
     HeroBannerComponent,
@@ -49,6 +51,7 @@ export class HeroListComponent implements OnInit {
   readonly pageIndex = this.facade.pageIndex;
   readonly searchTerm = this.facade.searchTerm;
   readonly filteredHeroes = this.facade.filteredHeroes;
+  readonly isLoading = this.facade.isLoading;
 
   readonly paginatedHeroes = computed(() => {
     const list = this.filteredHeroes();
@@ -65,11 +68,17 @@ export class HeroListComponent implements OnInit {
   }
 
   onSearchChange(term: string): void {
-    this.facade.setSearchTerm(term);
+    this.facade
+      .searchHeroes(term)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   onSearchClear(): void {
-    this.facade.setSearchTerm('');
+    this.facade
+      .searchHeroes('')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   onEditHero(id: string): void {
