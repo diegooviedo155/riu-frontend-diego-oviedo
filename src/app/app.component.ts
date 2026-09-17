@@ -1,4 +1,10 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  OnInit,
+  inject,
+} from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/ui/navbar/navbar.component';
 import { SpinnerComponent } from './shared/ui/spinner/spinner.component';
@@ -26,4 +32,10 @@ import { FooterComponent } from './shared/ui/footer/footer.component';
     `,
   ],
 })
-export class AppComponent {}
+export class AppComponent implements OnInit {
+  private readonly titleService = inject(Title);
+
+  ngOnInit(): void {
+    this.titleService.setTitle('Gestión de Héroes | RIU');
+  }
+}

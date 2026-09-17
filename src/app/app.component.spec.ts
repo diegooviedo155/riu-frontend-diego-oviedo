@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AppComponent } from './app.component';
 
@@ -29,6 +30,11 @@ describe('AppComponent', () => {
       expect(compiled.querySelector('app-spinner')).toBeTruthy();
       expect(compiled.querySelector('app-navbar')).toBeTruthy();
       expect(compiled.querySelector('main.main-content')).toBeTruthy();
+    });
+
+    it('should set document title on initialization', () => {
+      const titleService = TestBed.inject(Title);
+      expect(titleService.getTitle()).toBe('Gestión de Héroes | RIU');
     });
 
     it('should render footer component', () => {
