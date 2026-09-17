@@ -1,216 +1,214 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpParams } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { HeroApiService } from './hero-api.service';
-import { BaseApiService } from '../../../core/http/base-api.service';
-import { HEROES_API_URL } from '../../../core/tokens/api.token';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { HeroApiService, HERO_API_SIMULATED_DELAY } from './hero-api.service';
+import { LoadingService } from '../../../core/services/loading.service';
 import { Hero, HeroCreateDto, HeroUpdateDto } from '../models';
+import { HEROES_INITIAL_DATA } from '../data/heroes.data';
 
 describe('HeroApiService', () => {
   let service: HeroApiService;
-  let baseApiMock: {
-    get: ReturnType<typeof vi.fn>;
-    post: ReturnType<typeof vi.fn>;
-    put: ReturnType<typeof vi.fn>;
-    delete: ReturnType<typeof vi.fn>;
+  let loadingServiceMock: {
+    show: ReturnType<typeof vi.fn>;
+    hide: ReturnType<typeof vi.fn>;
   };
-  const mockApiUrl = 'http://test-api.com/heroes';
-
-  const mockHeroes: Hero[] = [
-    {
-      id: '1',
-      name: 'SPIDERMAN',
-      alias: 'Peter Parker',
-      power: 'Spider-Sense',
-    },
-    {
-      id: '2',
-      name: 'SUPERMAN',
-      alias: 'Clark Kent',
-      power: 'Flight',
-    },
-  ];
 
   beforeEach(() => {
-    baseApiMock = {
-      get: vi.fn(),
-      post: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn(),
+    localStorage.clear();
+    loadingServiceMock = {
+      show: vi.fn(),
+      hide: vi.fn(),
     };
 
     TestBed.configureTestingModule({
       providers: [
         HeroApiService,
-        { provide: BaseApiService, useValue: baseApiMock },
-        { provide: HEROES_API_URL, useValue: mockApiUrl },
+        { provide: LoadingService, useValue: loadingServiceMock },
+        { provide: HERO_API_SIMULATED_DELAY, useValue: 0 },
       ],
     });
 
     service = TestBed.inject(HeroApiService);
   });
 
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   describe('Happy Path', () => {
-    it('should retrieve all heroes via baseApi.get', () => {
-      baseApiMock.get.mockReturnValue(of(mockHeroes));
-      let retrievedHeroes: Hero[] | undefined;
+    it('should retrieve all initial heroes seeded from HEROES_INITIAL_DATA', () => {
+      let retrieved: Hero[] | undefined;
 
       service.getAll().subscribe((heroes) => {
-        retrievedHeroes = heroes;
+        retrieved = heroes;
       });
 
-      expect(baseApiMock.get).toHaveBeenCalledWith(mockApiUrl);
-      expect(retrievedHeroes).toEqual(mockHeroes);
+      expect(retrieved).toEqual(HEROES_INITIAL_DATA);
+      expect(retrieved?.length).toBe(20);
+      expect(loadingServiceMock.show).toHaveBeenCalled();
+      expect(loadingServiceMock.hide).toHaveBeenCalled();
     });
 
-    it('should fetch hero by id via baseApi.get', () => {
-      baseApiMock.get.mockReturnValue(of(mockHeroes[0]));
-      let retrievedHero: Hero | undefined;
+    it('should fetch hero by id when it exists', () => {
+      let retrieved: Hero | undefined;
 
       service.getById('1').subscribe((hero) => {
-        retrievedHero = hero;
+        retrieved = hero;
       });
 
-      expect(baseApiMock.get).toHaveBeenCalledWith(`${mockApiUrl}/1`);
-      expect(retrievedHero).toEqual(mockHeroes[0]);
+      expect(retrieved?.name).toBe('SPIDERMAN');
+      expect(loadingServiceMock.show).toHaveBeenCalled();
+      expect(loadingServiceMock.hide).toHaveBeenCalled();
     });
 
-    it('should search heroes by name setting name_like param', () => {
-      baseApiMock.get.mockReturnValue(of(mockHeroes));
-      let retrievedHeroes: Hero[] | undefined;
+    it('should search heroes containing search term in name or alias', () => {
+      let results: Hero[] | undefined;
 
       service.searchByName('man').subscribe((heroes) => {
-        retrievedHeroes = heroes;
+        results = heroes;
       });
 
-      expect(baseApiMock.get).toHaveBeenCalledWith(
-        mockApiUrl,
-        expect.any(HttpParams),
-      );
-      const passedParams = baseApiMock.get.mock.calls[0][1] as HttpParams;
-      expect(passedParams.get('name_like')).toBe('man');
-      expect(retrievedHeroes).toEqual(mockHeroes);
+      expect(results).toBeDefined();
+      expect(results!.length).toBeGreaterThan(0);
+      expect(
+        results!.every(
+          (h) =>
+            h.name.toLowerCase().includes('man') ||
+            h.alias?.toLowerCase().includes('man'),
+        ),
+      ).toBe(true);
     });
 
-    it('should create new hero via baseApi.post', () => {
-      const payload: HeroCreateDto = {
-        name: 'BATMAN',
-        alias: 'Bruce Wayne',
-        power: 'Intellect',
-      };
-      const createdHero: Hero = { id: '3', ...payload };
-      baseApiMock.post.mockReturnValue(of(createdHero));
-      let result: Hero | undefined;
+    it('should return all heroes when search term is empty', () => {
+      let results: Hero[] | undefined;
 
-      service.create(payload).subscribe((hero) => {
-        result = hero;
+      service.searchByName('').subscribe((heroes) => {
+        results = heroes;
       });
 
-      expect(baseApiMock.post).toHaveBeenCalledWith(mockApiUrl, payload);
-      expect(result).toEqual(createdHero);
+      expect(results?.length).toBe(20);
     });
 
-    it('should update hero via baseApi.put', () => {
-      const updateDto: HeroUpdateDto = { alias: 'Miles Morales' };
-      const updatedHero: Hero = { ...mockHeroes[0], alias: 'Miles Morales' };
-      baseApiMock.put.mockReturnValue(of(updatedHero));
-      let result: Hero | undefined;
-
-      service.update('1', updateDto).subscribe((hero) => {
-        result = hero;
-      });
-
-      expect(baseApiMock.put).toHaveBeenCalledWith(
-        `${mockApiUrl}/1`,
-        updateDto,
-      );
-      expect(result).toEqual(updatedHero);
-    });
-
-    it('should delete hero by id via baseApi.delete', () => {
-      baseApiMock.delete.mockReturnValue(of(undefined));
-      let completed = false;
-
-      service.delete('1').subscribe(() => {
-        completed = true;
-      });
-
-      expect(baseApiMock.delete).toHaveBeenCalledWith(`${mockApiUrl}/1`);
-      expect(completed).toBe(true);
-    });
-  });
-
-  describe('Bad Path', () => {
-    it('should propagate error when baseApi.get fails with 404', () => {
-      const errorObj = new Error('Hero not found');
-      baseApiMock.get.mockReturnValue(throwError(() => errorObj));
-      let capturedError: Error | undefined;
-
-      service.getById('999').subscribe({
-        error: (err: Error) => {
-          capturedError = err;
-        },
-      });
-
-      expect(capturedError).toBe(errorObj);
-    });
-
-    it('should propagate error when baseApi.post fails with 500', () => {
-      const errorObj = new Error('Server error');
-      baseApiMock.post.mockReturnValue(throwError(() => errorObj));
-      let capturedError: Error | undefined;
-
-      service.create({ name: 'A', alias: 'B', power: 'C' }).subscribe({
-        error: (err: Error) => {
-          capturedError = err;
-        },
-      });
-
-      expect(capturedError).toBe(errorObj);
-    });
-
-    it('should propagate error when baseApi.delete fails', () => {
-      const errorObj = new Error('Delete failure');
-      baseApiMock.delete.mockReturnValue(throwError(() => errorObj));
-      let capturedError: Error | undefined;
-
-      service.delete('1').subscribe({
-        error: (err: Error) => {
-          capturedError = err;
-        },
-      });
-
-      expect(capturedError).toBe(errorObj);
-    });
-  });
-
-  describe('Border Cases', () => {
-    it('should pass empty string param when search term is empty', () => {
-      baseApiMock.get.mockReturnValue(of([]));
-
-      service.searchByName('').subscribe();
-
-      const passedParams = baseApiMock.get.mock.calls[0][1] as HttpParams;
-      expect(passedParams.get('name_like')).toBe('');
-    });
-
-    it('should handle hero without optional properties during creation', () => {
-      const payload: HeroCreateDto = {
+    it('should create a new hero and assign the next sequential id', () => {
+      const newHeroDto: HeroCreateDto = {
         name: 'FLASH',
         alias: 'Barry Allen',
-        power: 'Super Speed',
+        power: 'Super speed',
+        publisher: 'DC',
       };
-      const createdHero: Hero = { id: '4', ...payload };
-      baseApiMock.post.mockReturnValue(of(createdHero));
-      let result: Hero | undefined;
 
-      service.create(payload).subscribe((hero) => {
-        result = hero;
+      let created: Hero | undefined;
+      service.create(newHeroDto).subscribe((hero) => {
+        created = hero;
       });
 
-      expect(result?.description).toBeUndefined();
-      expect(result?.publisher).toBeUndefined();
+      expect(created?.id).toBe('21');
+      expect(created?.name).toBe('FLASH');
+
+      let allHeroes: Hero[] | undefined;
+      service.getAll().subscribe((heroes) => {
+        allHeroes = heroes;
+      });
+      expect(allHeroes?.length).toBe(21);
+      expect(allHeroes?.some((h) => h.id === '21')).toBe(true);
+    });
+
+    it('should update an existing hero', () => {
+      const updateDto: HeroUpdateDto = {
+        name: 'PETER PARKER (SUPER)',
+      };
+
+      let updated: Hero | undefined;
+      service.update('1', updateDto).subscribe((hero) => {
+        updated = hero;
+      });
+
+      expect(updated?.id).toBe('1');
+      expect(updated?.name).toBe('PETER PARKER (SUPER)');
+      expect(updated?.alias).toBe('Peter Parker');
+    });
+
+    it('should delete a hero by id', () => {
+      let deletionCompleted = false;
+      service.delete('1').subscribe(() => {
+        deletionCompleted = true;
+      });
+
+      expect(deletionCompleted).toBe(true);
+
+      let allHeroes: Hero[] | undefined;
+      service.getAll().subscribe((heroes) => {
+        allHeroes = heroes;
+      });
+      expect(allHeroes?.some((h) => h.id === '1')).toBe(false);
+      expect(allHeroes?.length).toBe(19);
+    });
+  });
+
+  describe('Bad Path / Edge Cases', () => {
+    it('should throw error when getById receives an invalid id', () => {
+      let errorThrown: Error | undefined;
+
+      service.getById('non-existent-id').subscribe({
+        next: () => {},
+        error: (err) => {
+          errorThrown = err;
+        },
+      });
+
+      expect(errorThrown).toBeDefined();
+      expect(errorThrown?.message).toContain(
+        'Hero with id non-existent-id not found',
+      );
+      expect(loadingServiceMock.hide).toHaveBeenCalled();
+    });
+
+    it('should throw error when update receives an invalid id', () => {
+      let errorThrown: Error | undefined;
+
+      service.update('non-existent-id', { name: 'FAIL' }).subscribe({
+        next: () => {},
+        error: (err) => {
+          errorThrown = err;
+        },
+      });
+
+      expect(errorThrown).toBeDefined();
+      expect(errorThrown?.message).toContain(
+        'Hero with id non-existent-id not found',
+      );
+      expect(loadingServiceMock.hide).toHaveBeenCalled();
+    });
+
+    it('should throw error when delete receives an invalid id', () => {
+      let errorThrown: Error | undefined;
+
+      service.delete('non-existent-id').subscribe({
+        next: () => {},
+        error: (err) => {
+          errorThrown = err;
+        },
+      });
+
+      expect(errorThrown).toBeDefined();
+      expect(errorThrown?.message).toContain(
+        'Hero with id non-existent-id not found',
+      );
+      expect(loadingServiceMock.hide).toHaveBeenCalled();
+    });
+
+    it('should persist changes to localStorage and reload them', () => {
+      const newHeroDto: HeroCreateDto = {
+        name: 'AQUAMAN',
+        alias: 'Arthur Curry',
+        power: 'Water control',
+        publisher: 'DC',
+      };
+
+      service.create(newHeroDto).subscribe();
+
+      const storedJson = localStorage.getItem('riu_heroes_data');
+      expect(storedJson).toBeDefined();
+      expect(storedJson).toContain('AQUAMAN');
     });
   });
 });
