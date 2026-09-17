@@ -92,5 +92,29 @@ describe('UppercaseDirective', () => {
       expect(controlledInput.value).toBe('AGENT 007 - MI6');
       expect(fixture.componentInstance.control.value).toBe('AGENT 007 - MI6');
     });
+
+    it('should preserve cursor selection range when typing in the middle of a string', () => {
+      controlledInput.value = 'spiDerman';
+      controlledInput.setSelectionRange(4, 4);
+
+      controlledInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(controlledInput.value).toBe('SPIDERMAN');
+      expect(controlledInput.selectionStart).toBe(4);
+      expect(controlledInput.selectionEnd).toBe(4);
+    });
+
+    it('should preserve selection range when replacing a text selection in the middle', () => {
+      controlledInput.value = 'spiDERman';
+      controlledInput.setSelectionRange(3, 6);
+
+      controlledInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(controlledInput.value).toBe('SPIDERMAN');
+      expect(controlledInput.selectionStart).toBe(3);
+      expect(controlledInput.selectionEnd).toBe(6);
+    });
   });
 });
